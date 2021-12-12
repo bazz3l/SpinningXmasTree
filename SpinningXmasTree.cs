@@ -5,7 +5,7 @@ using VLB;
 
 namespace Oxide.Plugins
 {
-    [Info("Spinning Xmas Tree", "Bazz3l", "1.0.0")]
+    [Info("Spinning Xmas Tree", "Bazz3l", "1.0.1")]
     [Description("Add lights and a star to your tree and watch it turn with awesomeness")]
     public class SpinningXmasTree : RustPlugin
     {
@@ -92,6 +92,7 @@ namespace Oxide.Plugins
 
             christmasTree.SetParent(droppedItem);
             christmasTree.transform.localPosition = Vector3.zero;
+            christmasTree.transform.hasChanged = true;
             christmasTree.SendNetworkUpdateImmediate();
 
             droppedItem.GetOrAddComponent<TreeSpinnerController>()
@@ -111,19 +112,28 @@ namespace Oxide.Plugins
             christmasTree.SetParent(null, true, true);
 
             if (parent != null && !parent.IsDestroyed)
-                parent.Kill();
+            {
+	            UnityEngine.Object.Destroy(parent.GetComponent<TreeSpinnerController>());
+
+	            parent.Kill();
+            }
         }
 
         class TreeSpinnerController : MonoBehaviour
         {
+	        private BaseEntity _entity;
             private bool _shouldSpin;
+
+            void Awake()
+            {
+	            _entity = GetComponent<BaseEntity>();
+            }
 
             void FixedUpdate()
             {
                 if (!_shouldSpin) return;
 
                 transform.Rotate(0, Time.fixedDeltaTime * 10, 0);
-                transform.hasChanged = true;
             }
 
             public void SetSpin(ItemContainer container)
